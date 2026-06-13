@@ -80,6 +80,15 @@ data "aws_ami" "amazon_linux_2023" {
   }
 }
 
+data "aws_iam_role" "jenkins_role" {
+  name = "ec2adminaccess"
+}
+
+resource "aws_iam_instance_profile" "jenkins_profile" {
+  name = "wordcraft-jenkins-profile"
+  role = data.aws_iam_role.jenkins_role.name
+}
+
 resource "aws_instance" "jenkins" {
   ami           = data.aws_ami.amazon_linux_2023.id
   instance_type = "t3.medium"
@@ -87,6 +96,8 @@ resource "aws_instance" "jenkins" {
   
   vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
   associate_public_ip_address = true
+  key_name = var.key_name
+  iam_instance_profile = aws_iam_instance_profile.jenkins_profile.name
 
   # Script to install Docker, Jenkins, Git
   user_data = <<-EOF
@@ -101,7 +112,7 @@ resource "aws_instance" "jenkins" {
               usermod -aG docker ec2-user
               
               # Install Java (required for Jenkins)
-              dnf install -y java-17-amazon-corretto-devel
+              dnf install -y java-21-amazon-corretto-headless
               
               # Install Jenkins
               wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
@@ -118,9 +129,13 @@ resource "aws_instance" "jenkins" {
               dnf install -y git
               
               # Install kubectl
-              curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.27.1/2023-04-19/bin/linux/amd64/kubectl
+              curl -LO "https://dl.k8s.io/release/v1.36.0/bin/linux/amd64/kubectl"
               chmod +x ./kubectl
               mv ./kubectl /usr/local/bin/kubectl
+              
+              # Install eksctl
+              curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
+              mv /tmp/eksctl /usr/local/bin
               
               # Note: GitHub and DockerHub credentials need to be added manually or via JCasC
               EOF
@@ -138,7 +153,7 @@ module "eks" {
   version = "~> 19.0"
 
   cluster_name    = "wordcraft-eks"
-  cluster_version = "1.27"
+  cluster_version = "1.36"
 
   vpc_id                         = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
