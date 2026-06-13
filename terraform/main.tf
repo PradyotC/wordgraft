@@ -93,11 +93,11 @@ resource "aws_instance" "jenkins" {
   ami           = data.aws_ami.amazon_linux_2023.id
   instance_type = "t3.medium"
   subnet_id     = module.vpc.public_subnets[0]
-  
-  vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
+
+  vpc_security_group_ids      = [aws_security_group.jenkins_sg.id]
   associate_public_ip_address = true
-  key_name = var.key_name
-  iam_instance_profile = aws_iam_instance_profile.jenkins_profile.name
+  key_name                    = var.key_name
+  iam_instance_profile        = aws_iam_instance_profile.jenkins_profile.name
 
   # Script to install Docker, Jenkins, Git
   user_data = <<-EOF
@@ -150,7 +150,7 @@ resource "aws_instance" "jenkins" {
 # -------------------------------------------------------------------------
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.0"
+  version = "~> 20.0"
 
   cluster_name    = "wordcraft-eks"
   cluster_version = "1.36"
@@ -158,6 +158,35 @@ module "eks" {
   vpc_id                         = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
   cluster_endpoint_public_access = true
+
+  # Grant the Jenkins EC2 Instance access to the cluster
+  enable_cluster_creator_admin_permissions = true
+  access_entries = {
+    jenkins = {
+      kubernetes_groups = []
+      principal_arn     = data.aws_iam_role.jenkins_role.arn
+
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
+
+  cluster_security_group_additional_rules = {
+    ingress_jenkins = {
+      description              = "Allow Jenkins EC2 to access cluster API"
+      protocol                 = "tcp"
+      from_port                = 443
+      to_port                  = 443
+      type                     = "ingress"
+      source_security_group_id = aws_security_group.jenkins_sg.id
+    }
+  }
 
   eks_managed_node_group_defaults = {
     instance_types = ["t3.medium"]

@@ -3,6 +3,10 @@ set -e
 
 echo "🚀 Starting Post-Provisioning Setup..."
 
+# Set AWS region for eksctl and aws cli
+export AWS_REGION=us-east-1
+export AWS_DEFAULT_REGION=us-east-1
+
 # 1. Configure kubectl to connect to the EKS cluster
 echo "⚙️ Attaching EKS cluster to kubectl..."
 # Using the AWS region variable from your setup (default us-east-1)
@@ -38,7 +42,7 @@ eksctl create addon \
 # 4. Install ArgoCD
 echo "🐙 Installing ArgoCD..."
 kubectl create namespace argocd || true
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 echo "⏳ Waiting for ArgoCD CRDs to establish..."
 sleep 15
