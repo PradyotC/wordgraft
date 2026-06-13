@@ -16,6 +16,10 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+                script {
+                    // Get the short Git commit hash to use as the image tag
+                    env.GIT_COMMIT_HASH = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                }
             }
         }
 
@@ -23,14 +27,14 @@ pipeline {
             steps {
                 dir('app') {
                     script {
-                        sh "docker build --platform linux/amd64 -t ${DOCKER_IMAGE_APP}:${BUILD_NUMBER} ."
-                        sh "docker tag ${DOCKER_IMAGE_APP}:${BUILD_NUMBER} ${DOCKER_IMAGE_APP}:latest"
+                        sh "docker build --platform linux/amd64 -t ${DOCKER_IMAGE_APP}:${GIT_COMMIT_HASH} ."
+                        sh "docker tag ${DOCKER_IMAGE_APP}:${GIT_COMMIT_HASH} ${DOCKER_IMAGE_APP}:latest"
                     }
                 }
                 dir('ml') {
                     script {
-                        sh "docker build --platform linux/amd64 -t ${DOCKER_IMAGE_ML}:${BUILD_NUMBER} ."
-                        sh "docker tag ${DOCKER_IMAGE_ML}:${BUILD_NUMBER} ${DOCKER_IMAGE_ML}:latest"
+                        sh "docker build --platform linux/amd64 -t ${DOCKER_IMAGE_ML}:${GIT_COMMIT_HASH} ."
+                        sh "docker tag ${DOCKER_IMAGE_ML}:${GIT_COMMIT_HASH} ${DOCKER_IMAGE_ML}:latest"
                     }
                 }
             }
@@ -41,10 +45,10 @@ pipeline {
                 script {
                     sh "echo \$DOCKERHUB_CREDENTIALS_PSW | docker login -u \$DOCKERHUB_CREDENTIALS_USR --password-stdin"
                     
-                    sh "docker push ${DOCKER_IMAGE_APP}:${BUILD_NUMBER}"
+                    sh "docker push ${DOCKER_IMAGE_APP}:${GIT_COMMIT_HASH}"
                     sh "docker push ${DOCKER_IMAGE_APP}:latest"
                     
-                    sh "docker push ${DOCKER_IMAGE_ML}:${BUILD_NUMBER}"
+                    sh "docker push ${DOCKER_IMAGE_ML}:${GIT_COMMIT_HASH}"
                     sh "docker push ${DOCKER_IMAGE_ML}:latest"
                 }
             }
@@ -55,8 +59,8 @@ pipeline {
                 script {
                     // Update the image tag in app-deployment.yaml and ml-deployment.yaml
                     sh """
-                    sed -i "s|image: ${DOCKER_IMAGE_APP}:.*|image: ${DOCKER_IMAGE_APP}:${BUILD_NUMBER}|g" k8s/app-deployment.yaml
-                    sed -i "s|image: ${DOCKER_IMAGE_ML}:.*|image: ${DOCKER_IMAGE_ML}:${BUILD_NUMBER}|g" k8s/ml-deployment.yaml
+                    sed -i "s|image: ${DOCKER_IMAGE_APP}:.*|image: ${DOCKER_IMAGE_APP}:${GIT_COMMIT_HASH}|g" k8s/app-deployment.yaml
+                    sed -i "s|image: ${DOCKER_IMAGE_ML}:.*|image: ${DOCKER_IMAGE_ML}:${GIT_COMMIT_HASH}|g" k8s/ml-deployment.yaml
                     """
                 }
             }
@@ -71,7 +75,7 @@ pipeline {
                     git config user.name "Jenkins CI"
                     
                     git add k8s/app-deployment.yaml k8s/ml-deployment.yaml
-                    git commit -m "Update app and ml images to version ${BUILD_NUMBER}"
+                    git commit -m "Update app and ml images to commit ${GIT_COMMIT_HASH}"
                     
                     # Extract the domain and path from GIT_REPO_URL to inject credentials
                     REPO_DOMAIN_PATH=\$(echo \$GIT_REPO_URL | sed 's|https://||')
@@ -88,8 +92,8 @@ pipeline {
         always {
             // Clean up Docker images and credentials
             sh "docker logout"
-            sh "docker rmi ${DOCKER_IMAGE_APP}:${BUILD_NUMBER} || true"
-            sh "docker rmi ${DOCKER_IMAGE_ML}:${BUILD_NUMBER} || true"
+            sh "docker rmi ${DOCKER_IMAGE_APP}:${GIT_COMMIT_HASH} || true"
+            sh "docker rmi ${DOCKER_IMAGE_ML}:${GIT_COMMIT_HASH} || true"
         }
     }
 }
