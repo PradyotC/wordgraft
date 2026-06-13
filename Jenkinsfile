@@ -73,8 +73,11 @@ pipeline {
                     git add k8s/app-deployment.yaml k8s/ml-deployment.yaml
                     git commit -m "Update app and ml images to version ${BUILD_NUMBER}"
                     
+                    # Extract the domain and path from GIT_REPO_URL to inject credentials
+                    REPO_DOMAIN_PATH=\$(echo \$GIT_REPO_URL | sed 's|https://||')
+                    
                     # Push using credentials
-                    git push https://\$GITHUB_CREDENTIALS_USR:\$GITHUB_CREDENTIALS_PSW@github.com/mygithubuser/wordcraft-devops.git HEAD:main
+                    git push https://\$GITHUB_CREDENTIALS_USR:\$GITHUB_CREDENTIALS_PSW@\${REPO_DOMAIN_PATH} HEAD:main
                     """
                 }
             }
