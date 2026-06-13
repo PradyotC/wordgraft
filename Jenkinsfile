@@ -9,7 +9,7 @@ pipeline {
         
         DOCKER_IMAGE_APP = "pradyotc/wordcraft-app"
         DOCKER_IMAGE_ML = "pradyotc/wordcraft-ml"
-        GIT_REPO_URL = "https://github.com/mygithubuser/wordcraft-devops.git"
+        GIT_REPO_URL = "https://github.com/PradyotC/wordgraft.git"
     }
 
     stages {
