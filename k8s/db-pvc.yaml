@@ -5,6 +5,7 @@ metadata:
   labels:
     app: wordcraft-db
 spec:
+  storageClassName: ebs-sc
   accessModes:
     - ReadWriteOnce
   resources:
