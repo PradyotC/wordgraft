@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  jenkins:
+    build:
+      context: .
+    container_name: jenkins-local
+    privileged: true
+    user: root # Run as root to access mounted docker socket easily in dev environment
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      # Mount the Docker socket from the host so Jenkins can spawn sister containers
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  jenkins_home:

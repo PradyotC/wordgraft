@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordcraft-db
+  labels:
+    app: wordcraft-db
+spec:
+  selector:
+    matchLabels:
+      app: wordcraft-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordcraft-db
+    spec:
+      containers:
+        - image: pradyotc/wordcraft-db:latest
+          name: wordcraft-db
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "password"
+            - name: MYSQL_DATABASE
+              value: "wordcraft"
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim

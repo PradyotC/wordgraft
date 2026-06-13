@@ -1,0 +1,11 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: wordcraft-local
+nodes:
+- role: control-plane
+  # Optional: expose ports from the control plane node to the host
+  extraPortMappings:
+  - containerPort: 30000
+    hostPort: 3000
+    protocol: TCP
+- role: worker

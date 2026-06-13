@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordcraft-ml
+  labels:
+    app: wordcraft-ml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordcraft-ml
+  template:
+    metadata:
+      labels:
+        app: wordcraft-ml
+    spec:
+      containers:
+        - name: wordcraft-ml
+          image: pradyotc/wordcraft-ml:latest
+          ports:
+            - containerPort: 5000
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"

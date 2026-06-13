@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Graft/Craft</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Sidebar for Objectives -->
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <h2>Objectives</h2>
+                <p>Set targets to discover</p>
+            </div>
+            <div id="objectives-setup">
+                <input type="text" id="objective-input" placeholder="e.g. Steam, Lava, Dust">
+                <button id="set-objectives-btn">Set Targets</button>
+            </div>
+            <ul id="objectives-list">
+                <!-- Objectives will be added here dynamically -->
+            </ul>
+        </aside>
+
+        <!-- Main Crafting Board -->
+        <main id="board">
+            <div class="header">
+                <h1>Word Craft</h1>
+                <p>Drag elements onto each other to graft new ones.</p>
+            </div>
+            <div id="crafting-area">
+                <!-- Elements dragged here for temporary visual if needed, but primarily we drag item onto item directly in the inventory -->
+            </div>
+        </main>
+
+        <!-- Inventory Panel -->
+        <div id="inventory-panel">
+            <h3>Discovered Elements</h3>
+            <div id="inventory">
+                <!-- Elements will be added here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="toast" class="hidden"></div>
+
+    <script src="script.js?v=2"></script>
+</body>
+</html>

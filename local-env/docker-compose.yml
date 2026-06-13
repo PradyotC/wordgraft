@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  db:
+    build: 
+      context: ../database
+    container_name: wordcraft-db-local
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: wordcraft
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - wordcraft-network
+
+  ml-service:
+    build:
+      context: ../ml
+    container_name: wordcraft-ml-local
+    ports:
+      - "5001:5000"
+    networks:
+      - wordcraft-network
+    depends_on:
+      - db
+
+  app:
+    build:
+      context: ../app
+    container_name: wordcraft-app-local
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_NAME: wordcraft
+      ML_SERVICE_URL: http://ml-service:5000
+    networks:
+      - wordcraft-network
+    depends_on:
+      - db
+      - ml-service
+
+volumes:
+  db_data:
+
+networks:
+  wordcraft-network:
+    driver: bridge
