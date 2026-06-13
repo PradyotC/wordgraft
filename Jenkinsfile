@@ -23,13 +23,13 @@ pipeline {
             steps {
                 dir('app') {
                     script {
-                        sh "docker build -t ${DOCKER_IMAGE_APP}:${BUILD_NUMBER} ."
+                        sh "docker build --platform linux/amd64 -t ${DOCKER_IMAGE_APP}:${BUILD_NUMBER} ."
                         sh "docker tag ${DOCKER_IMAGE_APP}:${BUILD_NUMBER} ${DOCKER_IMAGE_APP}:latest"
                     }
                 }
                 dir('ml') {
                     script {
-                        sh "docker build -t ${DOCKER_IMAGE_ML}:${BUILD_NUMBER} ."
+                        sh "docker build --platform linux/amd64 -t ${DOCKER_IMAGE_ML}:${BUILD_NUMBER} ."
                         sh "docker tag ${DOCKER_IMAGE_ML}:${BUILD_NUMBER} ${DOCKER_IMAGE_ML}:latest"
                     }
                 }
