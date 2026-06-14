@@ -16,7 +16,7 @@ spec:
         app: wordcraft-db
     spec:
       containers:
-        - image: pradyotc/wordcraft-db:a0e6465
+        - image: pradyotc/wordcraft-db:5bc75ba
           name: wordcraft-db
           env:
             - name: MYSQL_ROOT_PASSWORD
