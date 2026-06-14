@@ -86,7 +86,7 @@ pipeline {
                     git config user.name "Jenkins CI"
                     
                     git add k8s/app-deployment.yaml k8s/ml-deployment.yaml k8s/db-deployment.yaml
-                    git commit -m "Update app, ml, and db images to commit ${GIT_COMMIT_HASH}"
+                    git commit -m "Update app, ml, and db images to commit ${GIT_COMMIT_HASH} [skip ci]"
                     
                     # Extract the domain and path from GIT_REPO_URL to inject credentials
                     REPO_DOMAIN_PATH=\$(echo \$GIT_REPO_URL | sed 's|https://||')

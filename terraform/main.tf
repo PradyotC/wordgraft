@@ -200,3 +200,34 @@ module "eks" {
     }
   }
 }
+
+# -------------------------------------------------------------------------
+# Clean up Kubernetes LoadBalancers before Destroy
+# -------------------------------------------------------------------------
+resource "null_resource" "cleanup_k8s_resources" {
+  triggers = {
+    cluster_name = module.eks.cluster_name
+    region       = var.aws_region
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    # Run a script to remove ArgoCD and any services to force the deletion of AWS LBs and ENIs
+    command = <<EOF
+      # Authenticate to the cluster
+      aws eks update-kubeconfig --name $${self.triggers.cluster_name} --region $${self.triggers.region} || true
+      
+      # Delete the ArgoCD namespace so it stops fighting us
+      kubectl delete namespace argocd --ignore-not-found=true || true
+      
+      # Delete all LoadBalancer services so AWS cleans up the LBs and ENIs
+      kubectl delete svc --all --all-namespaces || true
+      
+      # Wait a few seconds for AWS to detach and delete the ENIs
+      sleep 30
+    EOF
+    on_failure = continue
+  }
+  
+  depends_on = [module.eks]
+}
