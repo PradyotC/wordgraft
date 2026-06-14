@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
+
     environment {
         // DockerHub credentials configured in Jenkins
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-id')

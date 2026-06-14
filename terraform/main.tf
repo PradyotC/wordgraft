@@ -211,9 +211,9 @@ resource "null_resource" "cleanup_k8s_resources" {
   }
 
   provisioner "local-exec" {
-    when    = destroy
+    when = destroy
     # Run a script to remove ArgoCD and any services to force the deletion of AWS LBs and ENIs
-    command = <<EOF
+    command    = <<EOF
       # Authenticate to the cluster
       aws eks update-kubeconfig --name $${self.triggers.cluster_name} --region $${self.triggers.region} || true
       
@@ -228,6 +228,6 @@ resource "null_resource" "cleanup_k8s_resources" {
     EOF
     on_failure = continue
   }
-  
+
   depends_on = [module.eks]
 }
