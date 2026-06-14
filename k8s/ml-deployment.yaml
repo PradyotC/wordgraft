@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: wordcraft-ml
-          image: pradyotc/wordcraft-ml:817e13d
+          image: pradyotc/wordcraft-ml:8c19dc0
           ports:
             - containerPort: 5000
           resources:
