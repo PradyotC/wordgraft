@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: wordcraft-app
-          image: pradyotc/wordcraft-app:c43df04
+          image: pradyotc/wordcraft-app:a8f9b37
           ports:
             - containerPort: 3000
           env:
