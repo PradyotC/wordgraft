@@ -50,6 +50,6 @@ sleep 15
 # 5. Apply ArgoCD Application Manifest
 echo "📄 Applying ArgoCD Application to manage the Wordcraft GitOps lifecycle..."
 # Apply directly from your GitHub repository so you don't need to manually clone it on the EC2 server
-kubectl apply -f https://raw.githubusercontent.com/PradyotC/wordgraft/main/k8s/argocd-application.yaml
+kubectl apply -f https://raw.githubusercontent.com/PradyotC/wordgraft-gitops/main/k8s/argocd-application.yaml
 
 echo "✅ All post-provisioning steps completed successfully!"
