@@ -15,6 +15,7 @@ pipeline {
         DOCKER_IMAGE_ML = "pradyotc/wordcraft-ml"
         DOCKER_IMAGE_DB = "pradyotc/wordcraft-db"
         GIT_REPO_URL = "https://github.com/PradyotC/wordgraft.git"
+        GITOPS_REPO_URL = "https://github.com/PradyotC/wordgraft-gitops.git"
     }
 
     stages {
@@ -68,35 +69,34 @@ pipeline {
             }
         }
 
-        stage('Update Kubernetes Manifests') {
+        stage('Update GitOps Repository') {
             steps {
                 script {
-                    // Update the image tag in app-deployment.yaml, ml-deployment.yaml, and db-deployment.yaml
                     sh """
+                    # Extract domain and path for the GitOps Repo to inject credentials
+                    GITOPS_DOMAIN_PATH=\$(echo \$GITOPS_REPO_URL | sed 's|https://||')
+                    
+                    # Clean up any previous clone to avoid workspace conflicts
+                    rm -rf gitops-repo
+                    
+                    # Clone the GitOps repository
+                    git clone https://\$GITHUB_CREDENTIALS_USR:\$GITHUB_CREDENTIALS_PSW@\${GITOPS_DOMAIN_PATH} gitops-repo
+                    cd gitops-repo
+                    
+                    # Update the image tags in the K8s manifests
                     sed -i "s|image: ${DOCKER_IMAGE_APP}:.*|image: ${DOCKER_IMAGE_APP}:${GIT_COMMIT_HASH}|g" k8s/app-deployment.yaml
                     sed -i "s|image: ${DOCKER_IMAGE_ML}:.*|image: ${DOCKER_IMAGE_ML}:${GIT_COMMIT_HASH}|g" k8s/ml-deployment.yaml
                     sed -i "s|image: ${DOCKER_IMAGE_DB}:.*|image: ${DOCKER_IMAGE_DB}:${GIT_COMMIT_HASH}|g" k8s/db-deployment.yaml
-                    """
-                }
-            }
-        }
-
-        stage('Commit to Git for ArgoCD') {
-            steps {
-                script {
-                    // Authenticate with GitHub using Jenkins credentials
-                    sh """
+                    
+                    # Commit and push back to the GitOps repo
                     git config user.email "jenkins@example.com"
                     git config user.name "Jenkins CI"
                     
                     git add k8s/app-deployment.yaml k8s/ml-deployment.yaml k8s/db-deployment.yaml
-                    git commit -m "Update app, ml, and db images to commit ${GIT_COMMIT_HASH} [skip ci]"
+                    git commit -m "Update application images to commit ${GIT_COMMIT_HASH} [skip ci]"
                     
-                    # Extract the domain and path from GIT_REPO_URL to inject credentials
-                    REPO_DOMAIN_PATH=\$(echo \$GIT_REPO_URL | sed 's|https://||')
-                    
-                    # Push using credentials
-                    git push https://\$GITHUB_CREDENTIALS_USR:\$GITHUB_CREDENTIALS_PSW@\${REPO_DOMAIN_PATH} HEAD:main
+                    # Push to the main branch
+                    git push origin main
                     """
                 }
             }
